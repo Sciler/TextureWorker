@@ -13,10 +13,6 @@ There isn't an installer because TextureWorker works as a portable software, tha
 
 No. The currently TextureWorker is in Alpha stage, but it should work pretty well anyway. Whatever a few features are missing at this time, but should be added in future versions.
 
-## Any last words?
-
-Not really, just have fun while develop and use this software when you need to pack textures for your LibGDX application/game.
-
 ## How to compile
 
 At this time I don't offer precompiled JAR files by myself, but it's very easy to compile the source of TextureWorker to an executable JAR file. Overall we compile TextureWorker like every other LibGDX software.
@@ -28,7 +24,7 @@ At this time I don't offer precompiled JAR files by myself, but it's very easy t
 * Navigate to the downloaded TextureWorker folder
 
 ```
-cd 'Path/To/The/Folder'
+cd 'Path/To/Downloaded/Folder'
 ```
 
 * Create a JAR
@@ -37,4 +33,19 @@ cd 'Path/To/The/Folder'
 ./gradlew desktop:dist
 ```
 
-> Now you can use the fileexplorer as an alternative
+### Execute
+
+> Now you can use the file explorer as an alternative
+
+* Your new JAR is now located at ".../desktop/build/libs/<NameOfJar>.jar".
+* Double-click on the created JAR
+
+**_OR_**
+
+```
+java -jar <NameOfJar>.jar
+```
+
+## Any last words?
+
+Not really, just have fun while develop and while use this software when you need to pack textures for your LibGDX application/game.
