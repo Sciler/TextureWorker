@@ -3,6 +3,7 @@ package de.sciler.textureworker.desktop;
 import com.badlogic.gdx.tools.texturepacker.TexturePacker;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class desktopPacker {
+    public JPanel mainPanel;
     private JTextField inputField;
     private JTextField outputField;
     private JButton generateButton;
@@ -25,7 +27,6 @@ public class desktopPacker {
     private JLabel outputLabel;
     private JLabel previewLabel;
     private JLabel packagenameLabel;
-    public JPanel mainPanel;
     private JButton lastImageButton;
     private JButton nextImageButton;
     private JPanel previewPanel;
