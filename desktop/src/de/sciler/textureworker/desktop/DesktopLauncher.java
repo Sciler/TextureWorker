@@ -1,16 +1,226 @@
 package de.sciler.textureworker.desktop;
 
 
-import javax.swing.*;
+import com.badlogic.gdx.tools.texturepacker.TexturePacker;
+import javafx.application.Application;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 
-public class DesktopLauncher {
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+
+public class DesktopLauncher extends Application {
+    private List<String> fileList;
+
     public static void main(String[] args) {
-        JFrame frame = new JFrame("TextureWorker 0.1 ALPHA");
-        desktopPacker dp;
-        dp = new desktopPacker();
-        frame.setContentPane(dp.mainPanel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1200, 800);
-        frame.setVisible(true);
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+        //WARNING: PRE_ALPHA!
+        Alert alphaAlert = new Alert(Alert.AlertType.WARNING);
+        alphaAlert.setTitle("Pre-Alpha status");
+        alphaAlert.setHeaderText("Unstable Pre-Alpha");
+        alphaAlert.setContentText("This is a unstable Pre-Alpha build.");
+        alphaAlert.showAndWait();
+
+
+        //GENERATE WINDOW
+        primaryStage.setTitle("TextureWorker");
+
+        BorderPane rootLayout = new BorderPane();
+        HBox bottomLayout = new HBox();
+        VBox sideMenuBar = new VBox();
+        rootLayout.setBottom(bottomLayout);
+        rootLayout.setLeft(sideMenuBar);
+
+        //CREATE COMPONENTS
+        Button abortButton = new Button("Abort");
+        Button generateButton = new Button("Generate");
+        Button infoButton = new Button("Info");
+
+        MenuBar menu = new MenuBar();
+
+
+        //TODO: ADD MORE MENU ITEMS
+        Menu fileMenu = new Menu("File");
+        Menu viewMenu = new Menu("View");
+        Menu helpMenu = new Menu("Help");
+
+        MenuItem prefMenuItem = new MenuItem("Preferences");
+
+        MenuItem docsMenuItem = new MenuItem("Docs");
+
+        //ADD TO MENU
+        fileMenu.getItems().add(prefMenuItem);
+
+        helpMenu.getItems().add(docsMenuItem);
+
+        //ADD TO MENUBAR
+        menu.getMenus().addAll(fileMenu, viewMenu, helpMenu);
+        menu.setUseSystemMenuBar(true);
+
+        Accordion sideMenu = new Accordion();
+        TitledPane sourcePane = new TitledPane();
+        TitledPane previewPane = new TitledPane();
+
+        sourcePane.setText("Source");
+        previewPane.setText("Preview");
+
+        //SOURCE
+        VBox sourceHolder = new VBox();
+        HBox packName = new HBox();
+        packName.getChildren().add(new Label("Name:"));
+        TextField nameField = new TextField();
+        packName.getChildren().add(nameField);
+        sourceHolder.getChildren().add(packName);
+
+        HBox inputDir = new HBox();
+        inputDir.getChildren().add(new Label("Input:"));
+        TextField inputField = new TextField();
+        Button getIDir = new Button("Get input directory");
+        inputDir.getChildren().add(inputField);
+        inputDir.getChildren().add(getIDir);
+        sourceHolder.getChildren().add(inputDir);
+
+        HBox outputDir = new HBox();
+        outputDir.getChildren().add(new Label("Output:"));
+        TextField outputField = new TextField();
+        Button getODir = new Button("Get output directory");
+        outputDir.getChildren().add(outputField);
+        outputDir.getChildren().add(getODir);
+        sourceHolder.getChildren().add(outputDir);
+
+        sourcePane.setContent(sourceHolder);
+
+        sideMenu.getPanes().add(sourcePane);
+
+        //PREVIEW
+        VBox previewHolder = new VBox();
+        HBox previewButtonHolder = new HBox();
+        ComboBox<String> previewLister = new ComboBox<>();
+
+        Button nextButton = new Button("Next");
+        Button previousButton = new Button("Previous");
+        previewButtonHolder.getChildren().addAll(previousButton, nextButton);
+        previewHolder.getChildren().addAll(previewLister, previewButtonHolder);
+
+        previewPane.setContent(previewHolder);
+
+        sideMenu.getPanes().add(previewPane);
+
+        //ADD TO LAYOUT
+        bottomLayout.getChildren().add(abortButton);
+        bottomLayout.getChildren().add(infoButton);
+        bottomLayout.getChildren().add(generateButton);
+        bottomLayout.setAlignment(Pos.BOTTOM_RIGHT);
+
+        sideMenuBar.getChildren().add(sideMenu);
+
+        rootLayout.getChildren().add(menu);
+
+        ImageView preview = new ImageView();
+        ScrollPane sp = new ScrollPane();
+        sp.setContent(preview);
+        rootLayout.setCenter(sp);
+
+        primaryStage.setScene(new Scene(rootLayout, 900, 700));
+        primaryStage.show();
+
+        //ADD LISTENER
+        abortButton.setOnAction(e -> System.exit(0));
+
+        infoButton.setOnAction(e -> {
+            Alert infoDialog = new Alert(Alert.AlertType.INFORMATION);
+            infoDialog.setContentText("Open Source Texture packer GUI for the LibGDX Texture packer");
+            infoDialog.setHeaderText(null);
+            infoDialog.show();
+        });
+
+        getIDir.setOnAction(e -> {
+            DirectoryChooser dirChooser = new DirectoryChooser();
+            dirChooser.setTitle("Get input directory");
+
+            File dir = dirChooser.showDialog(primaryStage);
+
+            if(dir != null){
+                inputField.setText(String.valueOf(dir));
+            }
+        });
+
+        getODir.setOnAction(e -> {
+            DirectoryChooser dirChooser = new DirectoryChooser();
+            dirChooser.setTitle("Get output directory");
+
+            File dir = dirChooser.showDialog(primaryStage);
+
+            if(dir != null){
+                outputField.setText(String.valueOf(dir));
+            }
+        });
+
+        generateButton.setOnAction(e -> {
+            if(!inputField.getText().isEmpty() && !outputField.getText().isEmpty() && !nameField.getText().isEmpty()) {
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                PrintStream sumOut = new PrintStream(outputStream);
+                PrintStream recovery = System.out;
+                System.setOut(sumOut);
+                pack(inputField.getText(), outputField.getText(), nameField.getText());
+                System.out.flush();
+                System.setOut(recovery);
+
+                Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
+                infoAlert.setHeaderText("Information");
+                infoAlert.setContentText(outputStream.toString());
+                infoAlert.showAndWait();
+
+                File[] fileArrayLocal = new File(outputField.getText()).listFiles();
+                fileList = new ArrayList<>();
+
+                assert fileArrayLocal != null;
+                for (File file: fileArrayLocal) {
+                    if (file.isFile()) {
+                        if(file.getName().substring(file.getName().lastIndexOf(".")).equals(".png")) {
+                            fileList.add(String.valueOf(file));
+                            previewLister.getItems().add(file.getName());
+                        }
+                    }
+                }
+                previewLister.getSelectionModel().selectFirst();
+
+            }else{
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error!");
+                alert.setHeaderText("Empty fields");
+                alert.setContentText("All fields need to be filled");
+                alert.showAndWait();
+            }
+        });
+
+        previewLister.setOnAction(e -> preview.setImage(new Image("file://" + fileList.get(previewLister.getSelectionModel().getSelectedIndex()))));
+
+        nextButton.setOnAction(e -> previewLister.getSelectionModel().selectNext());
+
+        previousButton.setOnAction(e -> previewLister.getSelectionModel().selectPrevious());
+    }
+    public void pack(String input, String output, String name){
+        TexturePacker.process(input, output, name);
     }
 }
