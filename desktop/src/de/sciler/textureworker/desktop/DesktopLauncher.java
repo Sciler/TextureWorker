@@ -17,11 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,9 +43,11 @@ public class DesktopLauncher extends Application {
 
         BorderPane rootLayout = new BorderPane();
         HBox bottomLayout = new HBox();
-        VBox sideMenuBar = new VBox();
+        VBox leftSideMenuBar = new VBox();
+        VBox rightSideMenuBar = new VBox();
         rootLayout.setBottom(bottomLayout);
-        rootLayout.setLeft(sideMenuBar);
+        rootLayout.setLeft(leftSideMenuBar);
+        rootLayout.setRight(rightSideMenuBar);
 
         //CREATE COMPONENTS
         Button abortButton = new Button("Abort");
@@ -66,7 +64,7 @@ public class DesktopLauncher extends Application {
 
         MenuItem prefMenuItem = new MenuItem("Preferences");
 
-        MenuItem docsMenuItem = new MenuItem("Docs");
+        MenuItem docsMenuItem = new MenuItem("Documentation");
 
         //ADD TO MENU
         fileMenu.getItems().add(prefMenuItem);
@@ -77,11 +75,18 @@ public class DesktopLauncher extends Application {
         menu.getMenus().addAll(fileMenu, viewMenu, helpMenu);
         menu.setUseSystemMenuBar(true);
 
-        Accordion sideMenu = new Accordion();
+        //ADD TO LEFT SIDEBAR
+        Accordion leftSideMenu = new Accordion();
         TitledPane sourcePane = new TitledPane();
-        TitledPane previewPane = new TitledPane();
+        TitledPane settingsPane = new TitledPane();
 
         sourcePane.setText("Source");
+        settingsPane.setText("Pack Settings");
+
+        //ADD TO RIGHT SIDEBAR
+        Accordion rightSideMenu = new Accordion();
+        TitledPane previewPane = new TitledPane();
+
         previewPane.setText("Preview");
 
         //SOURCE
@@ -110,7 +115,7 @@ public class DesktopLauncher extends Application {
 
         sourcePane.setContent(sourceHolder);
 
-        sideMenu.getPanes().add(sourcePane);
+        leftSideMenu.getPanes().add(sourcePane);
 
         //PREVIEW
         VBox previewHolder = new VBox();
@@ -124,7 +129,35 @@ public class DesktopLauncher extends Application {
 
         previewPane.setContent(previewHolder);
 
-        sideMenu.getPanes().add(previewPane);
+        rightSideMenu.getPanes().add(previewPane);
+
+        //SETTINGS PANE
+        VBox settingsHolder = new VBox();
+        HBox settingsMaxSize = new HBox();
+
+        HBox settingsMinSize = new HBox();
+
+        TextField minWidthField = new TextField();
+        TextField minHeightField = new TextField();
+
+        minWidthField.setMaxWidth(50);
+        minHeightField.setMaxWidth(50);
+
+        settingsMinSize.getChildren().addAll(new Label("Min Width:"), minWidthField, new Label("Min Height:"), minHeightField);
+        settingsHolder.getChildren().add(settingsMinSize);
+
+        TextField maxWidthField = new TextField();
+        TextField maxHeightField = new TextField();
+
+        maxWidthField.setMaxWidth(50);
+        maxHeightField.setMaxWidth(50);
+
+        settingsMaxSize.getChildren().addAll(new Label("Max Width:"), maxWidthField, new Label("Max Height:"), maxHeightField);
+        settingsHolder.getChildren().add(settingsMaxSize);
+
+        settingsPane.setContent(settingsHolder);
+
+        leftSideMenu.getPanes().add(settingsPane);
 
         //ADD TO LAYOUT
         bottomLayout.getChildren().add(abortButton);
@@ -132,7 +165,8 @@ public class DesktopLauncher extends Application {
         bottomLayout.getChildren().add(generateButton);
         bottomLayout.setAlignment(Pos.BOTTOM_RIGHT);
 
-        sideMenuBar.getChildren().add(sideMenu);
+        leftSideMenuBar.getChildren().add(leftSideMenu);
+        rightSideMenuBar.getChildren().add(rightSideMenu);
 
         rootLayout.getChildren().add(menu);
 
@@ -178,33 +212,43 @@ public class DesktopLauncher extends Application {
 
         generateButton.setOnAction(e -> {
             if(!inputField.getText().isEmpty() && !outputField.getText().isEmpty() && !nameField.getText().isEmpty()) {
+                previewLister.getItems().clear();
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 PrintStream sumOut = new PrintStream(outputStream);
                 PrintStream recovery = System.out;
                 System.setOut(sumOut);
-                pack(inputField.getText(), outputField.getText(), nameField.getText());
-                System.out.flush();
-                System.setOut(recovery);
 
-                Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
-                infoAlert.setHeaderText("Information");
-                infoAlert.setContentText(outputStream.toString());
-                infoAlert.showAndWait();
+                //GET SETTINGS
+                TexturePacker.Settings tSettings = new TexturePacker.Settings();
+                if(!maxWidthField.getText().isEmpty() && !maxHeightField.getText().isEmpty()) {
+                    tSettings.pot = false;
+                    tSettings.maxWidth = Integer.parseInt(maxWidthField.getText());
+                    tSettings.maxHeight = Integer.parseInt(maxHeightField.getText());
+                }
+                if(pack(tSettings, inputField.getText(), outputField.getText(), nameField.getText())) {
 
-                File[] fileArrayLocal = new File(outputField.getText()).listFiles();
-                fileList = new ArrayList<>();
+                    System.out.flush();
+                    System.setOut(recovery);
 
-                assert fileArrayLocal != null;
-                for (File file: fileArrayLocal) {
-                    if (file.isFile()) {
-                        if(file.getName().substring(file.getName().lastIndexOf(".")).equals(".png")) {
-                            fileList.add(String.valueOf(file));
-                            previewLister.getItems().add(file.getName());
+                    Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
+                    infoAlert.setHeaderText("Information");
+                    infoAlert.setContentText(outputStream.toString());
+                    infoAlert.showAndWait();
+
+                    File[] fileArrayLocal = new File(outputField.getText()).listFiles();
+                    fileList = new ArrayList<>();
+
+                    assert fileArrayLocal != null;
+                    for (File file : fileArrayLocal) {
+                        if (file.isFile()) {
+                            if (file.getName().substring(file.getName().lastIndexOf(".")).equals(".png")) {
+                                fileList.add(String.valueOf(file));
+                                previewLister.getItems().add(file.getName());
+                            }
                         }
                     }
+                    previewLister.getSelectionModel().selectFirst();
                 }
-                previewLister.getSelectionModel().selectFirst();
-
             }else{
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error!");
@@ -220,7 +264,32 @@ public class DesktopLauncher extends Application {
 
         previousButton.setOnAction(e -> previewLister.getSelectionModel().selectPrevious());
     }
-    public void pack(String input, String output, String name){
-        TexturePacker.process(input, output, name);
+    public boolean pack(TexturePacker.Settings settings, String input, String output, String name){
+        try {
+            TexturePacker.process(settings, input, output, name);
+            return true;
+        }catch (RuntimeException ex){
+            Alert exceptionAlert = new Alert(Alert.AlertType.ERROR);
+            exceptionAlert.setTitle("Error!");
+            exceptionAlert.setHeaderText("Exception Error");
+            exceptionAlert.setContentText("Error packing Images");
+
+            BorderPane dialogLayout = new BorderPane();
+            dialogLayout.setTop(new Label("The exception was:"));
+
+            TextArea exArea = new TextArea();
+
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            ex.printStackTrace(pw);
+
+            exArea.setText(sw.toString());
+            dialogLayout.setCenter(exArea);
+
+            exceptionAlert.getDialogPane().setExpandableContent(dialogLayout);
+
+            exceptionAlert.showAndWait();
+            return false;
+        }
     }
 }
