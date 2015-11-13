@@ -135,8 +135,8 @@ public class DesktopLauncher extends Application {
         //SETTINGS PANE
         VBox settingsHolder = new VBox();
         HBox settingsMaxSize = new HBox();
-
         HBox settingsMinSize = new HBox();
+        HBox settingsPadHolder = new HBox();
 
         TextField minWidthField = new TextField();
         TextField minHeightField = new TextField();
@@ -155,6 +155,15 @@ public class DesktopLauncher extends Application {
 
         settingsMaxSize.getChildren().addAll(new Label("Max Width:"), maxWidthField, new Label("Max Height:"), maxHeightField);
         settingsHolder.getChildren().add(settingsMaxSize);
+
+        TextField paddingX = new TextField();
+        TextField paddingY = new TextField();
+
+        paddingX.setMaxWidth(50);
+        paddingY.setMaxWidth(50);
+
+        settingsPadHolder.getChildren().addAll(new Label("Padding X:"), paddingX, new Label("Padding Y:"), paddingY);
+        settingsHolder.getChildren().add(settingsPadHolder);
 
         settingsPane.setContent(settingsHolder);
 
@@ -221,13 +230,30 @@ public class DesktopLauncher extends Application {
 
                 //GET SETTINGS
                 TexturePacker.Settings tSettings = new TexturePacker.Settings();
-                if(!maxWidthField.getText().isEmpty() && !maxHeightField.getText().isEmpty()) {
-                    tSettings.pot = false;
+                tSettings.pot = false;
+
+                //SET SETTINGS VALUE
+                if(!maxWidthField.getText().isEmpty()) {
                     tSettings.maxWidth = Integer.parseInt(maxWidthField.getText());
+                }
+                if(!minHeightField.getText().isEmpty()){
                     tSettings.maxHeight = Integer.parseInt(maxHeightField.getText());
                 }
-                if(pack(tSettings, inputField.getText(), outputField.getText(), nameField.getText())) {
+                if(!minWidthField.getText().isEmpty()){
+                    tSettings.minWidth = Integer.parseInt(minWidthField.getText());
+                }
+                if(!minHeightField.getText().isEmpty()){
+                    tSettings.minHeight = Integer.parseInt(minHeightField.getText());
+                }
+                if(!paddingX.getText().isEmpty()){
+                    tSettings.paddingX = Integer.parseInt(paddingX.getText());
+                }
+                if(!paddingY.getText().isEmpty()) {
+                    tSettings.paddingY = Integer.parseInt(paddingY.getText());
+                }
 
+                //PACK EVERYTHING
+                if(pack(tSettings, inputField.getText(), outputField.getText(), nameField.getText())) {
                     System.out.flush();
                     System.setOut(recovery);
 
@@ -235,6 +261,8 @@ public class DesktopLauncher extends Application {
                     infoAlert.setHeaderText("Information");
                     infoAlert.setContentText(outputStream.toString());
                     infoAlert.showAndWait();
+
+                    previewLister.getItems().clear();
 
                     File[] fileArrayLocal = new File(outputField.getText()).listFiles();
                     fileList = new ArrayList<>();
@@ -259,7 +287,11 @@ public class DesktopLauncher extends Application {
             }
         });
 
-        previewLister.setOnAction(e -> preview.setImage(new Image("file://" + fileList.get(previewLister.getSelectionModel().getSelectedIndex()))));
+        previewLister.setOnAction(e -> {
+            if(previewLister.getSelectionModel().getSelectedIndex() >= 0) {
+                preview.setImage(new Image("file://" + fileList.get(previewLister.getSelectionModel().getSelectedIndex())));
+            }
+        });
 
         nextButton.setOnAction(e -> previewLister.getSelectionModel().selectNext());
 
