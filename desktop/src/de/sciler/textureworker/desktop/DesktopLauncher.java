@@ -73,6 +73,7 @@ public class DesktopLauncher extends Application {
 
         //ADD TO MENUBAR
         menu.getMenus().addAll(fileMenu, viewMenu, helpMenu);
+        
         menu.setUseSystemMenuBar(true);
 
         //ADD TO LEFT SIDEBAR
@@ -168,7 +169,7 @@ public class DesktopLauncher extends Application {
         leftSideMenuBar.getChildren().add(leftSideMenu);
         rightSideMenuBar.getChildren().add(rightSideMenu);
 
-        rootLayout.getChildren().add(menu);
+        rootLayout.setTop(menu);
 
         ImageView preview = new ImageView();
         ScrollPane sp = new ScrollPane();
