@@ -3,7 +3,6 @@ package de.sciler.textureworker.desktop;
 
 import com.badlogic.gdx.tools.texturepacker.TexturePacker;
 import javafx.application.Application;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -50,9 +49,17 @@ public class DesktopLauncher extends Application {
         rootLayout.setRight(rightSideMenuBar);
 
         //CREATE COMPONENTS
+        ButtonBar bottomMenu = new ButtonBar();
+
         Button abortButton = new Button("Abort");
         Button generateButton = new Button("Generate");
         Button infoButton = new Button("Info");
+
+        ButtonBar.setButtonData(abortButton, ButtonBar.ButtonData.LEFT);
+        ButtonBar.setButtonData(infoButton, ButtonBar.ButtonData.OTHER);
+        ButtonBar.setButtonData(generateButton, ButtonBar.ButtonData.RIGHT);
+        bottomMenu.getButtons().addAll(abortButton, infoButton, generateButton);
+        rootLayout.setBottom(bottomMenu);
 
         MenuBar menu = new MenuBar();
 
@@ -80,9 +87,11 @@ public class DesktopLauncher extends Application {
         Accordion leftSideMenu = new Accordion();
         TitledPane sourcePane = new TitledPane();
         TitledPane settingsPane = new TitledPane();
+        TitledPane proSettingsPane = new TitledPane();
 
         sourcePane.setText("Source");
         settingsPane.setText("Pack Settings");
+        proSettingsPane.setText("Professional Settings");
 
         //ADD TO RIGHT SIDEBAR
         Accordion rightSideMenu = new Accordion();
@@ -125,11 +134,12 @@ public class DesktopLauncher extends Application {
 
         Button nextButton = new Button("Next");
         Button previousButton = new Button("Previous");
+        Button popupButton = new Button("Popup");
+
         previewButtonHolder.getChildren().addAll(previousButton, nextButton);
-        previewHolder.getChildren().addAll(previewLister, previewButtonHolder);
+        previewHolder.getChildren().addAll(previewLister, previewButtonHolder, popupButton);
 
         previewPane.setContent(previewHolder);
-
         rightSideMenu.getPanes().add(previewPane);
 
         //SETTINGS PANE
@@ -137,6 +147,9 @@ public class DesktopLauncher extends Application {
         HBox settingsMaxSize = new HBox();
         HBox settingsMinSize = new HBox();
         HBox settingsPadHolder = new HBox();
+        HBox settingsFormat = new HBox();
+        HBox settingsQualityHolder = new HBox();
+        HBox settingsAlias = new HBox();
 
         TextField minWidthField = new TextField();
         TextField minHeightField = new TextField();
@@ -165,16 +178,46 @@ public class DesktopLauncher extends Application {
         settingsPadHolder.getChildren().addAll(new Label("Padding X:"), paddingX, new Label("Padding Y:"), paddingY);
         settingsHolder.getChildren().add(settingsPadHolder);
 
+        CheckBox aliasCheck = new CheckBox("Alias");
+        aliasCheck.setSelected(true);
+
+        settingsAlias.getChildren().add(aliasCheck);
+        settingsHolder.getChildren().add(settingsAlias);
+
+        ChoiceBox<String> formatChoice = new ChoiceBox<>();
+        formatChoice.getItems().add("PNG");
+        formatChoice.getItems().add("JPG/JPEG");
+
+        settingsFormat.getChildren().addAll(new Label("Quality:"), formatChoice);
+
+        settingsHolder.getChildren().add(settingsFormat);
+
+        Slider settingsQualitySlider = new Slider();
+
+        settingsQualitySlider.setMax(1);
+        settingsQualitySlider.setValue(1);
+
+        settingsQualityHolder.getChildren().addAll(new Label("JPG Quality:"), settingsQualitySlider);
+
+        settingsHolder.getChildren().add(settingsQualityHolder);
         settingsPane.setContent(settingsHolder);
 
         leftSideMenu.getPanes().add(settingsPane);
 
-        //ADD TO LAYOUT
-        bottomLayout.getChildren().add(abortButton);
-        bottomLayout.getChildren().add(infoButton);
-        bottomLayout.getChildren().add(generateButton);
-        bottomLayout.setAlignment(Pos.BOTTOM_RIGHT);
+        //PROFESSIONAL SETTINGS
+        VBox proHolder = new VBox();
+        HBox proDebug = new HBox();
 
+        CheckBox debugCheck = new CheckBox("Debug");
+        debugCheck.setSelected(false);
+
+        proDebug.getChildren().add(debugCheck);
+        proHolder.getChildren().add(proDebug);
+
+        proSettingsPane.setContent(proHolder);
+        leftSideMenu.getPanes().add(proSettingsPane);
+
+        //ADD TO LAYOUT
         leftSideMenuBar.getChildren().add(leftSideMenu);
         rightSideMenuBar.getChildren().add(rightSideMenu);
 
@@ -188,8 +231,13 @@ public class DesktopLauncher extends Application {
         primaryStage.setScene(new Scene(rootLayout, 900, 700));
         primaryStage.show();
 
+        formatChoice.getSelectionModel().selectFirst();
+        settingsQualitySlider.setDisable(true);
+
         //ADD LISTENER
         abortButton.setOnAction(e -> System.exit(0));
+
+        popupButton.setOnAction(e -> new FullscreenPreview(preview.getImage()).show());
 
         infoButton.setOnAction(e -> {
             Alert infoDialog = new Alert(Alert.AlertType.INFORMATION);
@@ -217,6 +265,14 @@ public class DesktopLauncher extends Application {
 
             if(dir != null){
                 outputField.setText(String.valueOf(dir));
+            }
+        });
+
+        formatChoice.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue.intValue() == 0){
+                settingsQualitySlider.setDisable(true);
+            }else{
+                settingsQualitySlider.setDisable(false);
             }
         });
 
@@ -251,6 +307,16 @@ public class DesktopLauncher extends Application {
                 if(!paddingY.getText().isEmpty()) {
                     tSettings.paddingY = Integer.parseInt(paddingY.getText());
                 }
+                if(formatChoice.getSelectionModel().isSelected(1)){
+                    tSettings.outputFormat = "jpg";
+                    tSettings.jpegQuality = (float) settingsQualitySlider.getValue();
+                }else if(formatChoice.getSelectionModel().isSelected(0)){
+                    tSettings.outputFormat = "png";
+                }
+
+
+                tSettings.alias = aliasCheck.isSelected();
+                tSettings.debug = debugCheck.isSelected();
 
                 //PACK EVERYTHING
                 if(pack(tSettings, inputField.getText(), outputField.getText(), nameField.getText())) {
@@ -270,7 +336,7 @@ public class DesktopLauncher extends Application {
                     assert fileArrayLocal != null;
                     for (File file : fileArrayLocal) {
                         if (file.isFile()) {
-                            if (file.getName().substring(file.getName().lastIndexOf(".")).equals(".png")) {
+                            if (file.getName().substring(file.getName().lastIndexOf(".")).equals("." + tSettings.outputFormat)) {
                                 fileList.add(String.valueOf(file));
                                 previewLister.getItems().add(file.getName());
                             }
