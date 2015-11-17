@@ -292,7 +292,7 @@ public class DesktopLauncher extends Application {
                 if(!maxWidthField.getText().isEmpty()) {
                     tSettings.maxWidth = Integer.parseInt(maxWidthField.getText());
                 }
-                if(!minHeightField.getText().isEmpty()){
+                if(!maxHeightField.getText().isEmpty()){
                     tSettings.maxHeight = Integer.parseInt(maxHeightField.getText());
                 }
                 if(!minWidthField.getText().isEmpty()){
