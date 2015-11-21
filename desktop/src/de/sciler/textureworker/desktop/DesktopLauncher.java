@@ -207,16 +207,23 @@ public class DesktopLauncher extends Application {
         //PROFESSIONAL SETTINGS
         VBox proHolder = new VBox();
         VBox proRotate = new VBox();
+        VBox proGrid = new VBox();
         HBox proDebug = new HBox();
 
         CheckBox rotationCheck = new CheckBox("Rotation");
         rotationCheck.setSelected(false);
+
+        CheckBox gridCheck = new CheckBox("Grid");
+        gridCheck.setSelected(false);
 
         CheckBox debugCheck = new CheckBox("Debug");
         debugCheck.setSelected(false);
 
         proRotate.getChildren().add(rotationCheck);
         proHolder.getChildren().add(proRotate);
+
+        proGrid.getChildren().add(gridCheck);
+        proHolder.getChildren().add(proGrid);
 
         proDebug.getChildren().add(debugCheck);
         proHolder.getChildren().add(proDebug);
@@ -325,6 +332,7 @@ public class DesktopLauncher extends Application {
                 tSettings.alias = aliasCheck.isSelected();
                 tSettings.debug = debugCheck.isSelected();
                 tSettings.rotation = rotationCheck.isSelected();
+                tSettings.grid = gridCheck.isSelected();
 
                 //PACK EVERYTHING
                 if(pack(tSettings, inputField.getText(), outputField.getText(), nameField.getText())) {
