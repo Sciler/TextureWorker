@@ -207,11 +207,22 @@ public class DesktopLauncher extends Application {
         //PROFESSIONAL SETTINGS
         VBox proHolder = new VBox();
         VBox proRotate = new VBox();
+        VBox combineSubDir = new VBox();
+        VBox stripWhite = new VBox();
         VBox proGrid = new VBox();
         HBox proDebug = new HBox();
 
         CheckBox rotationCheck = new CheckBox("Rotation");
         rotationCheck.setSelected(false);
+
+        CheckBox combineSubDirCheck = new CheckBox("Combine subdirectories");
+        combineSubDirCheck.setSelected(false);
+
+        CheckBox stripWhiteCheckX = new CheckBox("Strip whitespace X");
+        stripWhiteCheckX.setSelected(false);
+
+        CheckBox stripWhiteCheckY = new CheckBox("Strip whitespace Y");
+        stripWhiteCheckY.setSelected(false);
 
         CheckBox gridCheck = new CheckBox("Grid");
         gridCheck.setSelected(false);
@@ -221,6 +232,16 @@ public class DesktopLauncher extends Application {
 
         proRotate.getChildren().add(rotationCheck);
         proHolder.getChildren().add(proRotate);
+
+        combineSubDir.getChildren().add(combineSubDirCheck);
+        proHolder.getChildren().add(combineSubDir);
+
+        proHolder.getChildren().add(new Separator());
+
+        stripWhite.getChildren().addAll(stripWhiteCheckX, stripWhiteCheckY);
+        proHolder.getChildren().add(stripWhite);
+
+        proHolder.getChildren().add(new Separator());
 
         proGrid.getChildren().add(gridCheck);
         proHolder.getChildren().add(proGrid);
@@ -333,6 +354,9 @@ public class DesktopLauncher extends Application {
                 tSettings.debug = debugCheck.isSelected();
                 tSettings.rotation = rotationCheck.isSelected();
                 tSettings.grid = gridCheck.isSelected();
+                tSettings.combineSubdirectories = combineSubDirCheck.isSelected();
+                tSettings.stripWhitespaceX = stripWhiteCheckX.isSelected();
+                tSettings.stripWhitespaceY = stripWhiteCheckY.isSelected();
 
                 //PACK EVERYTHING
                 if(pack(tSettings, inputField.getText(), outputField.getText(), nameField.getText())) {
