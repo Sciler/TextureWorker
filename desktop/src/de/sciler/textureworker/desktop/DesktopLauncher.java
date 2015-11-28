@@ -211,6 +211,7 @@ public class DesktopLauncher extends Application {
         VBox stripWhite = new VBox();
         VBox proGrid = new VBox();
         HBox proDebug = new HBox();
+        HBox fastProc = new HBox();
 
         CheckBox rotationCheck = new CheckBox("Rotation");
         rotationCheck.setSelected(false);
@@ -230,6 +231,9 @@ public class DesktopLauncher extends Application {
         CheckBox debugCheck = new CheckBox("Debug");
         debugCheck.setSelected(false);
 
+        CheckBox fastCheck = new CheckBox("Fast Processing");
+        fastCheck.setSelected(false);
+
         proRotate.getChildren().add(rotationCheck);
         proHolder.getChildren().add(proRotate);
 
@@ -248,6 +252,9 @@ public class DesktopLauncher extends Application {
 
         proDebug.getChildren().add(debugCheck);
         proHolder.getChildren().add(proDebug);
+
+        fastProc.getChildren().add(fastCheck);
+        proHolder.getChildren().add(fastProc);
 
         proSettingsPane.setContent(proHolder);
         leftSideMenu.getPanes().add(proSettingsPane);
@@ -357,6 +364,7 @@ public class DesktopLauncher extends Application {
                 tSettings.combineSubdirectories = combineSubDirCheck.isSelected();
                 tSettings.stripWhitespaceX = stripWhiteCheckX.isSelected();
                 tSettings.stripWhitespaceY = stripWhiteCheckY.isSelected();
+                tSettings.fast = fastCheck.isSelected();
 
                 //PACK EVERYTHING
                 if(pack(tSettings, inputField.getText(), outputField.getText(), nameField.getText())) {
