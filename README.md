@@ -6,8 +6,8 @@ TextureWorker is a (very) easy to use GUI for the texture packer that comes with
 
 ## Are there any system requirements?
 
-You only need to have installed Java 8 and above. TextureWorker should work pretty well on Windows, OS X and Linux distributions.
-There isn't an installer because TextureWorker works as a portable software, that means that you just need to run the .jar file. Please take a look at "How to compile"!
+You only need to have installed at least Java 8. TextureWorker should work pretty well on Windows, OS X and Linux distributions.
+There isn't any installer because TextureWorker works as a portable software, that means that you just need to run the .jar file. Please take a look at "How to compile"!
 
 ## Does this represent the final version of TextureWorker in any way?
 
